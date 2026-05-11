@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>קודי כניסה לבנינים</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Heebo", "Arial Hebrew", "David", Arial, sans-serif;
+    background: #f5f5f7;
+    color: #1c1c1e;
+    line-height: 1.4;
+    -webkit-text-size-adjust: 100%;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 16px 32px; }
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: #f5f5f7;
+    padding: 20px 0 12px;
+    border-bottom: 1px solid #e5e5ea;
+    margin-bottom: 16px;
+  }
+  h1 { font-size: 24px; font-weight: 700; margin: 0 0 14px; text-align: center; color: #1c1c1e; }
+  .search {
+    width: 100%; font-size: 18px; padding: 14px 16px;
+    border: 1.5px solid #d1d1d6; border-radius: 12px;
+    background: #fff; color: #1c1c1e;
+    font-family: inherit; direction: rtl; text-align: right;
+    -webkit-appearance: none; appearance: none;
+  }
+  .search:focus { outline: none; border-color: #007aff; box-shadow: 0 0 0 3px rgba(0,122,255,0.15); }
+  .count { margin-top: 10px; font-size: 13px; color: #8e8e93; text-align: center; }
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .card { background: #fff; border: 1px solid #e5e5ea; border-radius: 12px; padding: 14px 16px; }
+  .name { font-size: 19px; font-weight: 600; margin: 0 0 8px; color: #1c1c1e; }
+  .codes { display: flex; flex-direction: column; gap: 4px; }
+  .code-row { font-size: 16px; color: #1c1c1e; }
+  .label { color: #8e8e93; margin-left: 6px; }
+  .code { font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+  .empty-codes { font-size: 14px; color: #8e8e93; font-style: italic; }
+  .no-results { text-align: center; padding: 40px 20px; color: #8e8e93; font-size: 16px; }
+  mark { background: #fff3a8; color: inherit; padding: 0 2px; border-radius: 3px; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #000; color: #f2f2f7; }
+    header { background: #000; border-bottom-color: #2c2c2e; }
+    h1, .name, .code-row { color: #f2f2f7; }
+    .search { background: #1c1c1e; border-color: #3a3a3c; color: #f2f2f7; }
+    .card { background: #1c1c1e; border-color: #2c2c2e; }
+    .label, .count, .empty-codes, .no-results { color: #8e8e93; }
+    mark { background: #5c4d00; color: #fff3a8; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>קודי כניסה לבנינים</h1>
+    <input type="search" class="search" id="q" placeholder="חפש בניין..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <div class="count" id="count"></div>
+  </header>
+  <div class="list" id="list"></div>
+</div>
+
+<script>
+const BUILDINGS = [{"name":"אבן גבירול 9","building_code":"1937#"},{"name":"אהרונסון 13","building_code":"0-8080"},{"name":"אידלסון אברהם 15","building_code":"2407"},{"name":"אליוט ג'ורג' 5א","building_code":"?0246"},{"name":"בוגרשוב 7","building_code":"1948*"},{"name":"בן יהודה 248","building_code":"2480#"},{"name":"בן עטר 6","building_code":"2311#","garbage_code":"3366e","roof_code":"6"},{"name":"גאולה 27","building_code":"2710"},{"name":"דיזינגוף 25","building_code":"2468#"},{"name":"דניאל 17 א","building_code":"2424#"},{"name":"הכובשים 15","building_code":"1515#"},{"name":"הרב מארק 16","building_code":"1978#"},{"name":"טרומפלדור 48","building_code":"4848"},{"name":"יהודה הלוי 45","building_code":"1948 #","roof_code":"9898"},{"name":"ירמיהו 24","building_code":"2580#"},{"name":"מונטיפיורי 16","building_code":"מפתחת 0852 מפתחת","garbage_code":"סיבוב 056789"},{"name":"מלצ'ט 43","building_code":"אין קוד"},{"name":"מנדלי מוכר ספרים 9","building_code":"9090"},{"name":"נחמיה 14","building_code":"1379*"},{"name":"נס ציונה 11","building_code":"*1948*"},{"name":"עזריה מן האדומים 7"},{"name":"פיארברג 11","building_code":"0011#"},{"name":"פרוג 44","building_code":"2468"},{"name":"צ'לנוב 6","building_code":"2509","garbage_code":"2020#"},{"name":"קרני יהודה 23","building_code":"1948"},{"name":"ריינס 25","building_code":"קוד"},{"name":"רמב\"ם 3","building_code":"2434#","roof_code":"1239#","extra_codes":"רכזת אש 666666"},{"name":"רנ\"ק 14","building_code":"25800","garbage_code":"2525"},{"name":"שאגל 4","building_code":"0404 מפתח"},{"name":"שד בן גוריון 78","building_code":"7878*","extra_codes":"7878*"},{"name":"שד' בן ציון 6","building_code":"2589","garbage_code":"6116#","extra_codes":"שער כניסה 2407"},{"name":"שדרות בן גוריון 28","building_code":"0.852"},{"name":"שנקין 54","building_code":"5555 #","garbage_code":"6666","roof_code":"5454","extra_codes":"5445 חדר משאבות"},{"name":"שלמה המלך 97","building_code":"9797#","roof_code":"9797"},{"name":"שמשון הגיבור 1","building_code":"לדבר עם צביקה"},{"name":"שנקין 22"},{"name":"שנקין 65","building_code":"2580","garbage_code":"6556"},{"name":"יוסף הגלילי 12","building_code":"1212","extra_codes":"גג 2531#"},{"name":"טורי הזהב 11"},{"name":"סוקולוב 88","building_code":"1965 מפתח"},{"name":"פיארברג 16","building_code":"אין קודן"},{"name":"טיומקין 11"},{"name":"פינסקר 6 א"},{"name":"בן גוריון 40","building_code":"אין קוד"},{"name":"טורי הזהב 22","building_code":"1920","garbage_code":"2021"},{"name":"שנקין 30","building_code":"#1989#","garbage_code":"3101#"},{"name":"אחד העם 92","building_code":"1479#"},{"name":"וילנא 5","building_code":"2366#","roof_code":"c2145xy ולסובב ימינה"},{"name":"בארט 7","building_code":"1970","roof_code":"726"},{"name":"ארלוזרוב 71","extra_codes":"726"},{"name":"סמולנסקין 14"},{"name":"הצלע 5 א","building_code":"כניסה 2002","garbage_code":"חניון 8082#"},{"name":"דיזינגוף 320","building_code":"2468"},{"name":"פרוג 36"},{"name":"אייזקשטיין 11"},{"name":"בצלאל 9"},{"name":"בן ציון 18"}];
+
+const LABELS = {
+  building_code: "כניסה",
+  garbage_code: "זבל",
+  roof_code: "גג",
+  extra_codes: "נוסף"
+};
+const ORDER = ["building_code", "garbage_code", "roof_code", "extra_codes"];
+
+const collator = new Intl.Collator("he", { sensitivity: "base", numeric: true });
+BUILDINGS.sort((a, b) => collator.compare(a.name, b.name));
+
+const listEl = document.getElementById("list");
+const countEl = document.getElementById("count");
+const qEl = document.getElementById("q");
+
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function highlight(text, query) {
+  const t = escapeHTML(text);
+  if (!query) return t;
+  const q = escapeHTML(query);
+  const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+  return t.replace(re, m => `<mark>${m}</mark>`);
+}
+
+function matches(b, query) {
+  if (!query) return true;
+  const q = query.toLowerCase();
+  if (b.name.toLowerCase().includes(q)) return true;
+  for (const key of ORDER) {
+    const v = b[key];
+    if (v && String(v).toLowerCase().includes(q)) return true;
+  }
+  return false;
+}
+
+function render(query) {
+  const matched = BUILDINGS.filter(b => matches(b, query));
+  if (matched.length === 0) {
+    listEl.innerHTML = `<div class="no-results">לא נמצא בניין מתאים</div>`;
+    countEl.textContent = "";
+    return;
+  }
+  countEl.textContent = query
+    ? `${matched.length} מתוך ${BUILDINGS.length}`
+    : `${BUILDINGS.length} בנינים`;
+  const html = matched.map(b => {
+    const rows = ORDER
+      .filter(key => b[key] != null && b[key] !== "")
+      .map(key => `<div class="code-row"><span class="label">${LABELS[key]}:</span><span class="code">${highlight(b[key], query)}</span></div>`)
+      .join("");
+    const codesBlock = rows
+      ? `<div class="codes">${rows}</div>`
+      : `<div class="empty-codes">אין קוד רשום</div>`;
+    return `<div class="card"><div class="name">${highlight(b.name, query)}</div>${codesBlock}</div>`;
+  }).join("");
+  listEl.innerHTML = html;
+}
+
+qEl.addEventListener("input", () => render(qEl.value.trim()));
+render("");
+</script>
+</body>
+</html>
