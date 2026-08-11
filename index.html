@@ -4,7 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<title>קודי כניסה לבנינים</title>
+<title>קודי בניינים</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#007aff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="קודי בניינים">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png" type="image/png">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -44,7 +52,22 @@
   .empty-codes { font-size: 14px; color: #8e8e93; font-style: italic; }
   .no-results { text-align: center; padding: 40px 20px; color: #8e8e93; font-size: 16px; }
   mark { background: #fff3a8; color: inherit; padding: 0 2px; border-radius: 3px; }
+  .install {
+    display: none; margin-bottom: 14px; padding: 12px 14px;
+    background: #e8f2ff; border: 1px solid #b9d9ff; border-radius: 12px;
+    font-size: 14px; color: #1c1c1e; line-height: 1.5;
+  }
+  .install.show { display: block; }
+  .install b { font-weight: 600; }
+  .install-row { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+  .install button {
+    font-family: inherit; font-size: 14px; font-weight: 600;
+    border: 0; border-radius: 9px; padding: 9px 14px; cursor: pointer;
+  }
+  .btn-add { background: #007aff; color: #fff; }
+  .btn-x { background: transparent; color: #8e8e93; padding: 9px 6px; }
   @media (prefers-color-scheme: dark) {
+    .install { background: #0b2338; border-color: #17405f; color: #f2f2f7; }
     body { background: #000; color: #f2f2f7; }
     header { background: #000; border-bottom-color: #2c2c2e; }
     h1, .name, .code-row { color: #f2f2f7; }
@@ -62,11 +85,12 @@
     <input type="search" class="search" id="q" placeholder="חפש בניין..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     <div class="count" id="count"></div>
   </header>
+  <div class="install" id="install"></div>
   <div class="list" id="list"></div>
 </div>
 
 <script>
-const BUILDINGS = [{"name":"אבן גבירול 9","building_code":"1937#"},{"name":"אהרונסון 13","building_code":"0-8080"},{"name":"אידלסון אברהם 15","building_code":"2407"},{"name":"אליוט ג'ורג' 5 א","building_code":"?0246"},{"name":"בוגרשוב 7","building_code":"1948*"},{"name":"בן יהודה 248","building_code":"2480#"},{"name":"בן עטר 6","building_code":"2311#","garbage_code":"3366e","roof_code":"6"},{"name":"גאולה 27","building_code":"2710"},{"name":"דיזינגוף 25","building_code":"2468#"},{"name":"דניאל 17 א","building_code":"2424#"},{"name":"הכובשים 15","building_code":"1515#"},{"name":"הרב מארק 16","building_code":"1978#"},{"name":"טרומפלדור 48","building_code":"4848"},{"name":"יהודה הלוי 45","building_code":"1948 #","roof_code":"9898"},{"name":"ירמיהו 24","building_code":"2580#"},{"name":"מונטיפיורי 16","building_code":"מפתחת 0852 מפתחת","garbage_code":"סיבוב 056789","extra_codes":"ארון גז 056789"},{"name":"מלצ'ט 43","building_code":"אין קוד"},{"name":"מנדלי מוכר ספרים 9","building_code":"9090"},{"name":"נחמיה 14","building_code":"1379*"},{"name":"נס ציונה 11","building_code":"*1948*"},{"name":"עזריה מן האדומים 7"},{"name":"פיארברג 11","building_code":"0011#"},{"name":"פרוג 44","building_code":"2468"},{"name":"צ'לנוב 6","building_code":"2509","garbage_code":"2020#"},{"name":"קרני יהודה 23","building_code":"1948"},{"name":"ריינס 25","building_code":"קוד"},{"name":"רמב\"ם 3","building_code":"2434#","roof_code":"1239#","extra_codes":"רכזת אש 666666"},{"name":"רנ\"ק 14","building_code":"25800","garbage_code":"2525"},{"name":"שאגל 4","building_code":"0404 מפתח"},{"name":"שד' בן גוריון 78","building_code":"7878*","extra_codes":"7878*"},{"name":"שד' בן ציון 6","building_code":"2589","garbage_code":"6116#","extra_codes":"שער כניסה 2407"},{"name":"שד' בן גוריון 28","building_code":"0.852"},{"name":"שנקין 54","building_code":"5555 #","garbage_code":"6666","roof_code":"5454","extra_codes":"5445 חדר משאבות"},{"name":"שלמה המלך 97","building_code":"9797#","roof_code":"9797"},{"name":"שמשון הגיבור 1","building_code":"לדבר עם צביקה"},{"name":"שנקין 22"},{"name":"שנקין 65","building_code":"2580","garbage_code":"6556"},{"name":"יוסף הגלילי 12","building_code":"1212","extra_codes":"גג 2531#","roof_code":"2531#"},{"name":"טורי הזהב 23"},{"name":"סוקולוב 88","building_code":"1965 מפתח"},{"name":"פיארברג 16","building_code":"אין קודן"},{"name":"טיומקין 11"},{"name":"פינסקר 6 א"},{"name":"שד' בן גוריון 40","building_code":"אין קוד"},{"name":"טורי הזהב 22","building_code":"1920","garbage_code":"2021"},{"name":"שנקין 30","building_code":"#1989#","garbage_code":"3101#"},{"name":"אחד העם 92","building_code":"1479#"},{"name":"וילנא 5","building_code":"2366#","roof_code":"c2145xy ולסובב ימינה"},{"name":"בארט 7","building_code":"1970","roof_code":"726"},{"name":"ארלוזרוב 71","extra_codes":"726","building_code":"1469"},{"name":"סמולנסקין 14","building_code":"1807#"},{"name":"הצלע 5 א","building_code":"כניסה 2002","garbage_code":"חניון 8082#"},{"name":"דיזינגוף 320","building_code":"2468"},{"name":"פרוג 36"},{"name":"אייזק שטרן 11","building_code":"5264"},{"name":"בצלאל 9","building_code":"1949"},{"name":"בן ציון 18","building_code":"1948"},{"name":"סשה ארגוב 13","building_code":"1313*"},{"name":"סשה ארגוב 15","building_code":"מפתח 2356"},{"name":"יעקב שבתאי 31","building_code":"2580"},{"name":"בארט 7 א","building_code":"7272","roof_code":"0726"},{"name":"האגדה 15","building_code":"2369","extra_codes":"קודם מפתח"},{"name":"שד' הצנחנים 26","building_code":"2626 מפתח"},{"name":"יהושוע בן נון 49","building_code":"מפתח 2415"},{"name":"סשה ארגוב 31"},{"name":"רוטשילד 106"},{"name":"יוסף הגלילי 17","building_code":"1717"}];
+const BUILDINGS = [{"name":"אבן גבירול 9","building_code":"1937#"},{"name":"אהרונסון 13","building_code":"0-8080"},{"name":"אידלסון אברהם 15","building_code":"2407"},{"name":"אליוט ג'ורג' 5 א","building_code":"?0246"},{"name":"בוגרשוב 7","building_code":"1948*"},{"name":"בן יהודה 248","building_code":"2480#"},{"name":"בן עטר 6","building_code":"2311#","garbage_code":"3366e","roof_code":"6"},{"name":"גאולה 27","building_code":"2710"},{"name":"דיזינגוף 25","building_code":"2468#"},{"name":"דניאל 17 א","building_code":"2424#"},{"name":"הכובשים 15","building_code":"1515#"},{"name":"הרב מארק 16","building_code":"1978#"},{"name":"טרומפלדור 48","building_code":"4848"},{"name":"יהודה הלוי 45","building_code":"1948 #","roof_code":"9898"},{"name":"ירמיהו 24","building_code":"2580#"},{"name":"מונטיפיורי 16","building_code":"מפתחת 0852 מפתחת","garbage_code":"סיבוב 056789","extra_codes":"ארון גז 056789"},{"name":"מלצ'ט 43","building_code":"אין קוד"},{"name":"מנדלי מוכר ספרים 9","building_code":"9090"},{"name":"נחמיה 14","building_code":"1379*"},{"name":"נס ציונה 11","building_code":"*1948*"},{"name":"עזריה מן האדומים 7"},{"name":"פיארברג 11","building_code":"0011#"},{"name":"פרוג 44","building_code":"2468"},{"name":"צ'לנוב 6","building_code":"2509","garbage_code":"2020#"},{"name":"קרני יהודה 23","building_code":"1948"},{"name":"ריינס 25","building_code":"קוד"},{"name":"רמב\"ם 3","building_code":"2434#","roof_code":"1239#","extra_codes":"רכזת אש 666666"},{"name":"רנ\"ק 14","building_code":"25800","garbage_code":"2525"},{"name":"שאגל 4","building_code":"0404 מפתח"},{"name":"שד' בן גוריון 78","building_code":"7878*","extra_codes":"7878*"},{"name":"שד' בן ציון 6","building_code":"2589","garbage_code":"6116#","extra_codes":"שער כניסה 2407"},{"name":"שד' בן גוריון 28","building_code":"0.852"},{"name":"שנקין 54","building_code":"5555 #","garbage_code":"6666","roof_code":"5454","extra_codes":"5445 חדר משאבות"},{"name":"שלמה המלך 97","building_code":"9797#","roof_code":"9797"},{"name":"שמשון הגיבור 1","building_code":"לדבר עם צביקה"},{"name":"שנקין 22"},{"name":"שנקין 65","building_code":"2580","garbage_code":"6556"},{"name":"יוסף הגלילי 12","building_code":"1212","roof_code":"2531#"},{"name":"טורי הזהב 23"},{"name":"סוקולוב 88","building_code":"1965 מפתח"},{"name":"פיארברג 16","building_code":"אין קודן"},{"name":"טיומקין 11"},{"name":"פינסקר 6 א"},{"name":"שד' בן גוריון 40","building_code":"אין קוד"},{"name":"טורי הזהב 22","building_code":"1920","garbage_code":"2021"},{"name":"שנקין 30","building_code":"#1989#","garbage_code":"3101#"},{"name":"אחד העם 92","building_code":"1479#"},{"name":"וילנא 5","building_code":"2366#","roof_code":"c2145xy ולסובב ימינה"},{"name":"בארט 7","building_code":"1970","roof_code":"726"},{"name":"ארלוזרוב 71","extra_codes":"726","building_code":"1469"},{"name":"סמולנסקין 14","building_code":"1807#"},{"name":"הצלע 5 א","building_code":"כניסה 2002","garbage_code":"חניון 8082#"},{"name":"דיזינגוף 320","building_code":"2468"},{"name":"פרוג 36"},{"name":"אייזק שטרן 11","building_code":"5264"},{"name":"בצלאל 9","building_code":"1949"},{"name":"בן ציון 18","building_code":"1948"},{"name":"סשה ארגוב 13","building_code":"1313*"},{"name":"סשה ארגוב 15","building_code":"מפתח 2356"},{"name":"יעקב שבתאי 31","building_code":"2580"},{"name":"בארט 7 א","building_code":"7272","roof_code":"0726"},{"name":"האגדה 15","building_code":"2369","extra_codes":"קודם מפתח"},{"name":"שד' הצנחנים 26","building_code":"2626 מפתח"},{"name":"יהושוע בן נון 49","building_code":"מפתח 2415"},{"name":"סשה ארגוב 31"},{"name":"רוטשילד 106"},{"name":"יוסף הגלילי 17","building_code":"1717"}];
 
 const LABELS = {
   building_code: "כניסה",
@@ -136,6 +160,73 @@ function render(query) {
 
 qEl.addEventListener("input", () => render(qEl.value.trim()));
 render("");
+</script>
+
+<script>
+/* ── התקנה למסך הבית + עבודה בלי אינטרנט ── */
+(function () {
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+
+  const box = document.getElementById("install");
+  if (!box) return;
+
+  const standalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+  if (standalone) return;
+
+  let dismissed = false;
+  try { dismissed = sessionStorage.getItem("hideInstall") === "1"; } catch (e) {}
+  if (dismissed) return;
+
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  function hide() {
+    box.classList.remove("show");
+    try { sessionStorage.setItem("hideInstall", "1"); } catch (e) {}
+  }
+
+  function showIOS() {
+    box.innerHTML =
+      '<div class="install-row"><div>' +
+      '<b>שמור את זה במסך הבית</b><br>' +
+      'לחץ על כפתור השיתוף למטה ואז על <b>«הוסף למסך הבית»</b> — אחר כך פשוט לוחצים על האייקון.' +
+      '</div><button class="btn-x" id="xInstall">✕</button></div>';
+    box.classList.add("show");
+    document.getElementById("xInstall").addEventListener("click", hide);
+  }
+
+  function showAndroid(prompt) {
+    box.innerHTML =
+      '<div class="install-row"><div>' +
+      '<b>שמור את זה במסך הבית</b><br>נכנסים בלחיצה אחת, עובד גם בלי אינטרנט.' +
+      '</div><div><button class="btn-add" id="addBtn">התקנה</button>' +
+      '<button class="btn-x" id="xInstall">✕</button></div></div>';
+    box.classList.add("show");
+    document.getElementById("xInstall").addEventListener("click", hide);
+    document.getElementById("addBtn").addEventListener("click", async () => {
+      prompt.prompt();
+      try { await prompt.userChoice; } catch (e) {}
+      hide();
+    });
+  }
+
+  if (isIOS) {
+    showIOS();
+    return;
+  }
+
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    showAndroid(e);
+  });
+  window.addEventListener("appinstalled", hide);
+})();
 </script>
 </body>
 </html>
