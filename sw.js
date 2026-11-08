@@ -1,7 +1,7 @@
 // Service worker — קודי בניינים
 // אסטרטגיה: הדף עצמו network-first (כדי שעדכוני קודים יגיעו מיד),
 // עם נפילה לקאש כשאין אינטרנט. שאר הקבצים cache-first.
-const CACHE = "mg-codes-v5";
+const CACHE = "mg-codes-v6";
 const CORE = [
   "./",
   "./index.html",

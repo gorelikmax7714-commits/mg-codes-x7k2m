@@ -66,6 +66,12 @@
   }
   .btn-add { background: #007aff; color: #fff; }
   .btn-x { background: transparent; color: #8e8e93; padding: 9px 6px; }
+  [hidden] { display: none !important; }
+  .lock-box { max-width: 320px; margin: 18vh auto 0; padding: 0 16px; text-align: center; }
+  .lock-icon { font-size: 40px; margin-bottom: 8px; }
+  .lock-btn { width: 100%; margin-top: 12px; padding: 14px; font-size: 17px; font-family: inherit; font-weight: 600; border: 0; border-radius: 12px; cursor: pointer; }
+  .lock-err { min-height: 22px; margin-top: 10px; color: #ff3b30; font-size: 15px; }
+  .logout { background: none; border: 0; font-size: 16px; cursor: pointer; opacity: .5; vertical-align: middle; padding: 0 6px; }
   @media (prefers-color-scheme: dark) {
     .install { background: #0b2338; border-color: #17405f; color: #f2f2f7; }
     body { background: #000; color: #f2f2f7; }
@@ -79,9 +85,18 @@
 </style>
 </head>
 <body>
-<div class="wrap">
+<form class="lock" id="lockForm"><div id="lock" hidden>
+  <div class="lock-box">
+    <div class="lock-icon">🔒</div>
+    <h1>קודי בניינים</h1>
+    <input type="password" class="search" id="pw" inputmode="numeric" autocomplete="current-password" placeholder="סיסמה">
+    <button type="submit" class="btn-add lock-btn">כניסה</button>
+    <div class="lock-err" id="lockErr"></div>
+  </div></div>
+</form>
+<div class="wrap" id="app" hidden>
   <header>
-    <h1>קודי כניסה לבנינים</h1>
+    <h1>קודי כניסה לבנינים <button type="button" class="logout" id="logout" title="נעילה">🔒</button></h1>
     <input type="search" class="search" id="q" placeholder="חפש בניין..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     <div class="count" id="count"></div>
   </header>
@@ -90,7 +105,8 @@
 </div>
 
 <script>
-const BUILDINGS = [{"name":"אבן גבירול 9","building_code":"1937#"},{"name":"אהרונסון 13","building_code":"0-8080"},{"name":"אידלסון אברהם 15","building_code":"2407"},{"name":"אליוט ג'ורג' 5 א","building_code":"?0246"},{"name":"בוגרשוב 7","building_code":"1948*"},{"name":"בן יהודה 248","building_code":"2480#"},{"name":"בן עטר 6","building_code":"2311#","garbage_code":"3366e","roof_code":"6","safe_code":"1948C"},{"name":"גאולה 27","building_code":"2710"},{"name":"דיזינגוף 25","building_code":"2468#"},{"name":"דניאל 17 א","building_code":"2424#"},{"name":"הכובשים 15","building_code":"1515#"},{"name":"הרב מארק 16","building_code":"1978#"},{"name":"טרומפלדור 48","building_code":"4848"},{"name":"יהודה הלוי 45","building_code":"1948 #","roof_code":"9898"},{"name":"ירמיהו 24","building_code":"2580#"},{"name":"מונטיפיורי 16","building_code":"מפתחת 0852 מפתחת","garbage_code":"סיבוב 056789","extra_codes":"ארון גז 056789"},{"name":"מלצ'ט 43","building_code":"אין קוד"},{"name":"מנדלי מוכר ספרים 9","building_code":"9090"},{"name":"נחמיה 14","building_code":"1379*"},{"name":"נס ציונה 11","building_code":"1967"},{"name":"עזריה מן האדומים 7"},{"name":"פיארברג 11","building_code":"0011#"},{"name":"פרוג 44","building_code":"2468"},{"name":"צלנוב 6","building_code":"מפתח 1983","garbage_code":"2020#"},{"name":"קרני יהודה 23","building_code":"1948"},{"name":"ריינס 25","building_code":"קוד"},{"name":"רמב\"ם 3","building_code":"2434#","roof_code":"1239#","extra_codes":"רכזת אש 666666"},{"name":"רנ\"ק 14","building_code":"25800","garbage_code":"2525"},{"name":"שאגל 4","building_code":"0404 מפתח"},{"name":"שד' בן גוריון 78","building_code":"7878*","extra_codes":"7878*"},{"name":"שד' בן ציון 6","building_code":"2589","garbage_code":"6116#","extra_codes":"שער כניסה 2407"},{"name":"שד' בן גוריון 28","building_code":"0.852"},{"name":"שנקין 54","building_code":"5555 #","garbage_code":"6666","roof_code":"5454","extra_codes":"5445 חדר משאבות"},{"name":"שלמה המלך 97","building_code":"9797#","roof_code":"9797"},{"name":"שמשון הגיבור 1","building_code":"1970# או 1970*"},{"name":"שנקין 22"},{"name":"שנקין 65","building_code":"2580","garbage_code":"6556"},{"name":"יוסף הגלילי 12","building_code":"1212","roof_code":"2531#","extra_codes":"חניון 1231"},{"name":"טורי הזהב 23"},{"name":"סוקולוב 88","building_code":"1965 מפתח"},{"name":"פיארברג 16","building_code":"אין קודן"},{"name":"טיומקין 11"},{"name":"פינסקר 6 א"},{"name":"שד' בן גוריון 40","building_code":"אין קוד"},{"name":"טורי הזהב 22","building_code":"1920","garbage_code":"2021"},{"name":"שנקין 30","building_code":"#1989#","garbage_code":"3101#"},{"name":"אחד העם 92","building_code":"1479#"},{"name":"וילנא 5","building_code":"2366#","roof_code":"c2145xy ולסובב ימינה"},{"name":"בארט 7","building_code":"1970","roof_code":"726"},{"name":"ארלוזרוב 71","extra_codes":"726","building_code":"1469"},{"name":"סמולנסקין 14","building_code":"1807#"},{"name":"הצלע 5 א","building_code":"כניסה 2002","garbage_code":"חניון 8082#"},{"name":"דיזינגוף 320","building_code":"2468"},{"name":"פרוג 36"},{"name":"אייזק שטרן 11","building_code":"5264","safe_code":"2026"},{"name":"בצלאל 9","building_code":"1949"},{"name":"בן ציון 18","building_code":"1948"},{"name":"סשה ארגוב 13","building_code":"1313*"},{"name":"סשה ארגוב 15","building_code":"מפתח 2356"},{"name":"יעקב שבתאי 31","building_code":"2580"},{"name":"בארט 7 א","building_code":"7272","roof_code":"0726"},{"name":"האגדה 15","building_code":"2369","extra_codes":"קודם מפתח"},{"name":"שד' הצנחנים 26","building_code":"2626 מפתח"},{"name":"יהושוע בן נון 49","building_code":"מפתח 2415"},{"name":"סשה ארגוב 31"},{"name":"רוטשילד 106","building_code":"6933#","roof_code":"פתוח"},{"name":"יוסף הגלילי 17","building_code":"1717","safe_code":"7171"},{"name":"נתן אלתרמן 28","building_code":"2828"},{"name":"נתן אלתרמן 26","building_code":"2626"},{"name":"קלישר 23","building_code":"0127"},{"name":"חנקין / בלקין","building_code":"5149*"},{"name":"מנחם ארבר 13","building_code":"#9045","garbage_code":"2172#","extra_codes":"חדר חשמל / מכונות שטיפה C4981 · חדר אופניים 1326#"},{"name":"בן ציון 34","building_code":"0852"},{"name":"בן שטח 5","building_code":"מפתח 1254"}];
+const VAULT = {"v": 1, "iter": 600000, "salt": "nf1Y2qO7smlUC627esvWfw==", "iv": "SJPzhCVx3PuhMzof", "ct": "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"};
+let BUILDINGS = [];
 
 const LABELS = {
   building_code: "כניסה",
@@ -102,7 +118,6 @@ const LABELS = {
 const ORDER = ["building_code", "garbage_code", "roof_code", "safe_code", "extra_codes"];
 
 const collator = new Intl.Collator("he", { sensitivity: "base", numeric: true });
-BUILDINGS.sort((a, b) => collator.compare(a.name, b.name));
 
 const listEl = document.getElementById("list");
 const countEl = document.getElementById("count");
@@ -160,7 +175,59 @@ function render(query) {
 }
 
 qEl.addEventListener("input", () => render(qEl.value.trim()));
-render("");
+
+/* ── נעילה: הקודים מוצפנים (AES-GCM + PBKDF2) ונפתחים רק עם הסיסמה ── */
+const PW_KEY = "mgCodesPw";
+const lockEl = document.getElementById("lock");
+const pwEl = document.getElementById("pw");
+const errEl = document.getElementById("lockErr");
+const appEl = document.getElementById("app");
+
+function b64(s) { return Uint8Array.from(atob(s), c => c.charCodeAt(0)); }
+
+async function openVault(pw) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt: b64(VAULT.salt), iterations: VAULT.iter, hash: "SHA-256" },
+    base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+  const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(VAULT.iv) }, key, b64(VAULT.ct));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+async function unlock(pw, remember) {
+  try {
+    BUILDINGS = await openVault(pw);
+  } catch (e) {
+    return false;
+  }
+  BUILDINGS.sort((a, b) => collator.compare(a.name, b.name));
+  if (remember) { try { localStorage.setItem(PW_KEY, pw); } catch (e) {} }
+  lockEl.hidden = true;
+  appEl.hidden = false;
+  render("");
+  return true;
+}
+
+document.getElementById("lockForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  errEl.textContent = "בודק...";
+  const ok = await unlock(pwEl.value, true);
+  if (!ok) { errEl.textContent = "סיסמה שגויה"; pwEl.select(); }
+});
+
+document.getElementById("logout").addEventListener("click", () => {
+  try { localStorage.removeItem(PW_KEY); } catch (e) {}
+  location.reload();
+});
+
+(async () => {
+  let saved = null;
+  try { saved = localStorage.getItem(PW_KEY); } catch (e) {}
+  if (saved && await unlock(saved, false)) return;
+  if (saved) { try { localStorage.removeItem(PW_KEY); } catch (e) {} }
+  lockEl.hidden = false;
+  pwEl.focus();
+})();
 </script>
 
 <script>
